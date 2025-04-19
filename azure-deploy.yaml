@@ -1,0 +1,39 @@
+name: Deploy to Azure Container Registry
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Login to Azure Container Registry
+      uses: azure/docker-login@v1
+      with:
+        login-server: jobmatchingapi.azurecr.io
+        username: ${{ secrets.REGISTRY_USERNAME }}
+        password: ${{ secrets.REGISTRY_PASSWORD }}
+
+    - name: Build and push Docker image
+      run: |
+        docker build -t jobmatchingapi.azurecr.io/job-matching-api:latest .
+        docker push jobmatchingapi.azurecr.io/job-matching-api:latest
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: job-matching-api
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 8000
+    targetPort: 8000
+    nodePort: 30000
+  selector:
+    app: job-matching-api
