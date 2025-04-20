@@ -1,5 +1,5 @@
 # Build stage
-FROM python:3.11-slim as builder
+FROM python:3.11-slim AS builder
 
 # Set working directory
 WORKDIR /app
@@ -31,17 +31,8 @@ COPY --from=builder /usr/local/bin/ /usr/local/bin/
 # Copy application code
 COPY . .
 
-# Create non-root user
-RUN useradd -m appuser && chown -R appuser:appuser /app
-USER appuser
-
 # Expose port
-EXPOSE 8000
-
-# Environment variables should be set at runtime
-ENV DATABASE_URL=""
-ENV AZURE_OPENAI_API_KEY=""
-ENV AZURE_OPENAI_ENDPOINT=""
+EXPOSE 80
 
 # Run application
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "80"]
