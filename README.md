@@ -13,21 +13,43 @@ project-root/
 │
 ├── Job_matching_api-main/
 │   ├── app.py
+│   ├── add_data_to_db.py
+│   ├── add_test_jobs.py
+│   ├── check_db_count.py
+│   ├── gradio_app_embeddings.ipynb
+│   ├── gradio_app_keyword_base.ipynb
+│   ├── list_tables.py
+│   ├── temp_cv.md
+│   ├── temp_test_cv.md
+│   ├── test_api.py
+│   ├── test_db.py
+│   ├── test_db_2.py
+│   ├── requirements.txt
 │   ├── database/
 │   ├── models/
 │   ├── services/
-│   ├── requirements.txt
+│   ├── clean_build/
 │   └── ... (other code and resources)
 │
 ├── .env
 ├── Dockerfile
 ├── azure-deploy.yaml
+├── k8s-deployment.yaml
+├── k8s-service.yaml
 ├── README.md
+├── AZURE-DEPLOYMENT-GUIDE.md
+├── CLOUD-SETUP.md
+├── TODO.md
+├── web.config
+├── .gitignore
+├── .dockerignore
 └── ... (other deployment/config files)
 ```
 
 - **All application code, scripts, and resources are inside `Job_matching_api-main/`.**
 - **The root directory contains only deployment, configuration, and environment files.**
+- **The `clean_build/` folder is retained for backup/build purposes.**
+- **The `.env` file is at the root for environment configuration.**
 
 ## Architecture
 
@@ -56,7 +78,8 @@ The application follows a modern microservices architecture with the following c
 - **AI/ML**:
   - Azure OpenAI GPT-4 for CV analysis and semantic similarity
 - **PDF Processing**: PyMuPDF
-- **Containerization**: Docker with multi-stage builds
+- **Containerization**: Docker wi
+th multi-stage builds
 - **Cloud Deployment**: Azure Web App for Containers
 
 ## Prerequisites
@@ -76,6 +99,7 @@ The application follows a modern microservices architecture with the following c
 1. Clone the repository
 
 2. Set up environment variables in a `.env` file at the project root:
+   Make sure you have a `.env` file with the following configuration:
 ```env
 # Database Configuration
 DATABASE_URL=postgresql+psycopg2://username:password@host:5432/dbname
@@ -93,6 +117,11 @@ PORT=8000
 ```bash
 pip install -r Job_matching_api-main/requirements.txt
 ```
+4. Run the database migrations:
+```bash
+#No migrations needed
+```
+
 
 4. Start the FastAPI server:
 ```bash
@@ -104,6 +133,10 @@ uvicorn Job_matching_api-main.app:app --host 0.0.0.0 --port 8001 --reload
 ```
 
 5. Access the API documentation at: [http://localhost:8001/docs](http://localhost:8001/docs)
+6. Run the app
+```bash
+python Job_matching_api-main/app.py
+```
 
 ### Docker Setup
 
@@ -119,6 +152,22 @@ docker run -p 8000:8000 \
   -e AZURE_OPENAI_API_KEY=your_azure_openai_key \
   -e AZURE_OPENAI_ENDPOINT=your_azure_openai_endpoint \
   job-matching-api
+```
+
+## Database Setup
+
+The application uses PostgreSQL with vector search capabilities. The database schema will be automatically created when you run the application for the first time.
+
+### Adding Test Data
+
+Use the provided scripts inside `Job_matching_api-main/` to populate the database with job listings:
+
+```bash
+# Add sample job listings
+python Job_matching_api-main/add_data_to_db.py
+
+# Add test jobs for development
+python Job_matching_api-main/add_test_jobs.py
 ```
 
 ## API Documentation
@@ -153,7 +202,26 @@ Search jobs by keyword.
 
 ### Azure Web App for Containers Deployment
 
-The application is ready to be deployed to Azure Web App for Containers. Please refer to the Azure documentation for detailed deployment instructions.
+See `AZURE-DEPLOYMENT-GUIDE.md` for detailed deployment instructions.
+
+## Testing
+
+The project includes test scripts inside `Job_matching_api-main/` to verify functionality:
+
+```bash
+# Test database connection
+python Job_matching_api-main/test_db.py
+
+# Test the API endpoints
+python Job_matching_api-main/test_api.py
+```
+
+## Error Handling
+
+The API includes comprehensive error handling:
+- 404: Resource not found
+- 500: Internal server error
+- Validation errors for invalid input
 
 ## Security Considerations
 
@@ -178,5 +246,5 @@ Contributions are welcome! Please follow these steps:
 
 ---
 
-**Note:**
+**Note:**  
 This project has been reorganized for clarity and maintainability. All application code and scripts are now inside the `Job_matching_api-main/` directory. The root directory contains only deployment, configuration, and environment files.
