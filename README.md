@@ -4,15 +4,40 @@
 
 The Job Matching API is a sophisticated service that leverages AI to match CVs with job postings. It uses semantic similarity through embeddings and PostgreSQL full-text search to provide accurate job recommendations based on a candidate's resume and preferences.
 
+## Project Structure
+
+After reorganization, the project is structured as follows:
+
+```
+project-root/
+│
+├── Job_matching_api-main/
+│   ├── app.py
+│   ├── database/
+│   ├── models/
+│   ├── services/
+│   ├── requirements.txt
+│   └── ... (other code and resources)
+│
+├── .env
+├── Dockerfile
+├── azure-deploy.yaml
+├── README.md
+└── ... (other deployment/config files)
+```
+
+- **All application code, scripts, and resources are inside `Job_matching_api-main/`.**
+- **The root directory contains only deployment, configuration, and environment files.**
+
 ## Architecture
 
 The application follows a modern microservices architecture with the following components:
 
 - **FastAPI Backend**: RESTful API endpoints for CV processing and job matching
 - **PostgreSQL Database**: Stores job listings with vector embeddings for semantic search
-- **AI Services**: Uses Jina AI for embeddings and Azure OpenAI/Groq for CV analysis
+- **AI Services**: Uses Azure OpenAI for CV analysis and embeddings
 - **Docker Containerization**: Enables consistent deployment across environments
-- **Kubernetes Orchestration**: Manages container deployment, scaling, and operations
+- **Azure Web App for Containers**: Manages container deployment and scaling on Azure
 
 ## Features
 
@@ -20,7 +45,7 @@ The application follows a modern microservices architecture with the following c
 - **Full-text Job Search**: Enables keyword-based job search with PostgreSQL full-text capabilities
 - **CV Processing and Analysis**: Extracts structured information from CVs using AI
 - **RESTful API**: Well-documented endpoints for integration with frontend applications
-- **Containerized Deployment**: Docker and Kubernetes configurations for cloud deployment
+- **Containerized Deployment**: Docker configuration for cloud deployment
 - **Scalable Architecture**: Designed to handle large volumes of job listings and CV processing
 
 ## Technology Stack
@@ -29,24 +54,20 @@ The application follows a modern microservices architecture with the following c
 - **Database**: PostgreSQL with vector search capabilities
 - **ORM**: SQLAlchemy
 - **AI/ML**:
-  - Jina AI Embeddings for semantic similarity
-  - Azure OpenAI GPT-4 for CV analysis
-  - Groq LLM for job summarization
+  - Azure OpenAI GPT-4 for CV analysis and semantic similarity
 - **PDF Processing**: PyMuPDF
 - **Containerization**: Docker with multi-stage builds
-- **Orchestration**: Kubernetes
-- **Cloud Deployment**: Azure Kubernetes Service (AKS)
+- **Cloud Deployment**: Azure Web App for Containers
 
 ## Prerequisites
 
 - Python 3.11+
 - PostgreSQL database
 - Docker and Docker Compose (for containerized development)
-- Kubernetes CLI (kubectl) for deployment
+- Azure CLI installed and configured
+- Access to Azure subscription
 - API keys for:
-  - Jina AI
   - Azure OpenAI
-  - Groq (optional, for enhanced job summarization)
 
 ## Installation and Setup
 
@@ -54,16 +75,14 @@ The application follows a modern microservices architecture with the following c
 
 1. Clone the repository
 
-2. Set up environment variables in a `.env` file:
+2. Set up environment variables in a `.env` file at the project root:
 ```env
 # Database Configuration
 DATABASE_URL=postgresql+psycopg2://username:password@host:5432/dbname
 
 # API Keys
-JINA_API_KEY=your_jina_api_key
 AZURE_OPENAI_API_KEY=your_azure_openai_api_key
 AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/
-GROQ_API_KEY=your_groq_api_key
 
 # Server Configuration
 HOST=0.0.0.0
@@ -72,15 +91,19 @@ PORT=8000
 
 3. Install dependencies:
 ```bash
-pip install -r requirements.txt
+pip install -r Job_matching_api-main/requirements.txt
 ```
 
 4. Start the FastAPI server:
 ```bash
-python -m uvicorn app:app --host 0.0.0.0 --port 8000 --reload
+python Job_matching_api-main/app.py
+```
+or (for development with auto-reload):
+```bash
+uvicorn Job_matching_api-main.app:app --host 0.0.0.0 --port 8001 --reload
 ```
 
-5. Access the API documentation at: http://localhost:8000/docs
+5. Access the API documentation at: [http://localhost:8001/docs](http://localhost:8001/docs)
 
 ### Docker Setup
 
@@ -93,27 +116,9 @@ docker build -t job-matching-api .
 ```bash
 docker run -p 8000:8000 \
   -e DATABASE_URL=your_database_url \
-  -e JINA_API_KEY=your_jina_api_key \
   -e AZURE_OPENAI_API_KEY=your_azure_openai_key \
   -e AZURE_OPENAI_ENDPOINT=your_azure_openai_endpoint \
-  -e GROQ_API_KEY=your_groq_api_key \
   job-matching-api
-```
-
-## Database Setup
-
-The application uses PostgreSQL with vector search capabilities. The database schema will be automatically created when you run the application for the first time.
-
-### Adding Test Data
-
-Use the provided scripts to populate the database with job listings:
-
-```bash
-# Add sample job listings
-python add_data_to_db.py
-
-# Add test jobs for development
-python add_test_jobs.py
 ```
 
 ## API Documentation
@@ -146,54 +151,9 @@ Search jobs by keyword.
 
 ## Deployment
 
-### Azure Deployment
+### Azure Web App for Containers Deployment
 
-Detailed instructions for deploying to Azure can be found in the [AZURE-DEPLOYMENT-GUIDE.md](AZURE-DEPLOYMENT-GUIDE.md) file. Key steps include:
-
-1. Setting up Azure Container Registry (ACR)
-2. Creating an Azure Kubernetes Service (AKS) cluster
-3. Configuring secrets in Azure Key Vault
-4. Deploying the application using Kubernetes manifests
-
-```bash
-# Quick deployment steps
-az acr build --registry <your-acr-name> --image job-matching-api:latest .
-kubectl apply -f k8s-deployment.yaml
-kubectl apply -f k8s-service.yaml
-```
-
-### Kubernetes Deployment
-
-The project includes Kubernetes manifests for deployment:
-
-- `k8s-deployment.yaml`: Defines the deployment configuration
-- `k8s-service.yaml`: Exposes the API as a service
-
-Deploy using kubectl:
-
-```bash
-kubectl apply -f k8s-deployment.yaml
-kubectl apply -f k8s-service.yaml
-```
-
-## Testing
-
-The project includes test scripts to verify functionality:
-
-```bash
-# Test database connection
-python test_db.py
-
-# Test the API endpoints
-python test_api.py
-```
-
-## Error Handling
-
-The API includes comprehensive error handling:
-- 404: Resource not found
-- 500: Internal server error
-- Validation errors for invalid input
+The application is ready to be deployed to Azure Web App for Containers. Please refer to the Azure documentation for detailed deployment instructions.
 
 ## Security Considerations
 
@@ -215,3 +175,8 @@ Contributions are welcome! Please follow these steps:
 ## License
 
 [MIT License](LICENSE)
+
+---
+
+**Note:**
+This project has been reorganized for clarity and maintainability. All application code and scripts are now inside the `Job_matching_api-main/` directory. The root directory contains only deployment, configuration, and environment files.

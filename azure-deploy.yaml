@@ -9,31 +9,35 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    
+
     steps:
     - uses: actions/checkout@v2
 
     - name: Login to Azure Container Registry
       uses: azure/docker-login@v1
       with:
-        login-server: jobmatchingapi.azurecr.io
+        login-server: jobmatchingapijobmatchingapirg.azurecr.io
         username: ${{ secrets.REGISTRY_USERNAME }}
         password: ${{ secrets.REGISTRY_PASSWORD }}
 
     - name: Build and push Docker image
       run: |
-        docker build -t jobmatchingapi.azurecr.io/job-matching-api:latest .
-        docker push jobmatchingapi.azurecr.io/job-matching-api:latest
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: job-matching-api
-spec:
-  type: LoadBalancer
-  ports:
-  - port: 8000
-    targetPort: 8000
-    nodePort: 30000
-  selector:
-    app: job-matching-api
+        docker build -f Job_matching_api-main/Dockerfile -t jobmatchingapijobmatchingapirg.azurecr.io/job-matching-api:latest Job_matching_api-main
+        docker push jobmatchingapijobmatchingapirg.azurecr.io/job-matching-api:latest
+
+    - name: Login to Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Create App Service Plan
+      run: |
+        az appservice plan create --name job-matching-api-plan --resource-group job-matching-api-rg --sku B1 --is-linux
+
+    - name: Create Web App for Containers
+      run: |
+        az webapp create --resource-group job-matching-api-rg --plan job-matching-api-plan --name job-matching-api-app --deployment-container-image-name jobmatchingapijobmatchingapirg.azurecr.io/job-matching-api:latest
+
+    - name: Configure App Settings
+      run: |
+        az webapp config appsettings set --name job-matching-api-app --resource-group job-matching-api-rg --settings DATABASE_URL="${{ secrets.DATABASE_URL }}" AZURE_OPENAI_API_KEY="${{ secrets.AZURE_OPENAI_API_KEY }}" AZURE_OPENAI_ENDPOINT="${{ secrets.AZURE_OPENAI_ENDPOINT }}" AZURE_OPENAI_GPT4_DEPLOYMENT="${{ secrets.AZURE_OPENAI_GPT4_DEPLOYMENT }}" AZURE_OPENAI_EMBEDDING_DEPLOYMENT="${{ secrets.AZURE_OPENAI_EMBEDDING_DEPLOYMENT }}" AZURE_OPENAI_API_VERSION="${{ secrets.AZURE_OPENAI_API_VERSION }}"

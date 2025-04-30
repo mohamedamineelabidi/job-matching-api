@@ -32,7 +32,7 @@ COPY --from=builder /usr/local/bin/ /usr/local/bin/
 COPY . .
 
 # Expose port
-EXPOSE 80
+EXPOSE 8001
 
 # Run application
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "80"]
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8001"]

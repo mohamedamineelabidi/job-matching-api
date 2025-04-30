@@ -1,0 +1,21 @@
+@echo off
+del add_data_to_db.py
+del add_test_jobs.py
+del AZURE-DEPLOYMENT-GUIDE.md
+del check_db_count.py
+del CLOUD-SETUP.md
+del gradio_app_embeddings.ipynb
+del gradio_app_keyword_base.ipynb
+del k8s-deployment.yaml
+del k8s-service.yaml
+del list_tables.py
+del startup.sh
+del temp_cv.md
+del temp_test_cv.md
+del test_api.py
+del test_db_2.py
+del test_db.py
+del web.config
+rmdir /s /q clean_build
+del .dockerignore
+del .gitignore

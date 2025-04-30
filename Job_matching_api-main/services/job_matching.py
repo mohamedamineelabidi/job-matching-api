@@ -6,6 +6,7 @@ from sqlalchemy import func
 from openai import AzureOpenAI
 import os
 from sqlalchemy import or_ # Import or_ for keyword searching
+from langchain_openai import AzureOpenAIEmbeddings # Added AzureOpenAIEmbeddings import
 
 from models.database import JobPosting # Changed JobEmbedding to JobPosting
 from models.schemas import JobResponse
@@ -15,7 +16,7 @@ class JobMatchingService:
         self.azure_api_key = os.getenv("AZURE_OPENAI_API_KEY")
         self.azure_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
         self.embedding_deployment_name = os.getenv("AZURE_OPENAI_EMBEDDING_DEPLOYMENT") # Read deployment name
-        self.api_version = os.getenv("AZURE_OPENAI_API_VERSION") # Read API version
+        self.api_version = os.getenv("AZURE_OPENAI_API_VERSION", "2023-05-15") # Read API version, added default
 
         if not self.azure_api_key or not self.azure_endpoint:
             raise ValueError("Azure OpenAI API key and endpoint are required")
@@ -24,24 +25,26 @@ class JobMatchingService:
         if not self.api_version: # Check if API version is set
              raise ValueError("Azure OpenAI API version is required (AZURE_OPENAI_API_VERSION)")
 
-        self.client = AzureOpenAI(
-            api_key=self.azure_api_key,
-            api_version=self.api_version, # Use the API version from environment variable
-            azure_endpoint=self.azure_endpoint
+        # Use AzureOpenAIEmbeddings for embeddings
+        self.client = AzureOpenAIEmbeddings(
+            azure_deployment=self.embedding_deployment_name,
+            openai_api_version=self.api_version,
+            azure_endpoint=self.azure_endpoint,
+            openai_api_key=self.azure_api_key
         )
 
     def _cosine_similarity(self, vec1: List[float], vec2: List[float]) -> float:
         """Calculate cosine similarity between two vectors"""
         vec1 = np.array(vec1)
         vec2 = np.array(vec2)
-        
+
         dot_product = np.dot(vec1, vec2)
         norm_a = np.linalg.norm(vec1)
         norm_b = np.linalg.norm(vec2)
-        
+
         if norm_a == 0 or norm_b == 0:
             return 0.0 # Return float
-        
+
         similarity = dot_product / (norm_a * norm_b)
         return similarity
 
@@ -52,8 +55,8 @@ class JobMatchingService:
              raise ValueError("Embedding deployment name not configured.")
         try:
             # Use the deployment name read from environment variables
-            response = self.client.embeddings.create(input=[text], model=self.embedding_deployment_name)
-            return response.data[0].embedding
+            # The AzureOpenAIEmbeddings client handles the API call
+            return self.client.embed_query(text)
         except Exception as e:
             # Log the error appropriately in a real application
             # Consider more specific error handling for Azure API errors
@@ -69,9 +72,10 @@ class JobMatchingService:
         interests: Optional[str] = None,
         soft_skills: Optional[str] = None,
         db: Session = None,
-        limit: int = 10 # Renamed k to limit, default remains 10 here but will be overridden by app.py
+        limit: int = 10
     ) -> List[JobResponse]:
         """Find matching jobs for a CV using embedding similarity"""
+        print(f"find_matches called with limit: {limit}") # Added print statement
         try:
             # 1. Combine input text and generate CV embedding
             query_text = cv_content

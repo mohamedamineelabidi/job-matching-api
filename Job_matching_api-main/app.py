@@ -62,6 +62,9 @@ async def match_cv(
         
         return matches
     except Exception as e:
+        import traceback
+        print("Error in /api/match-cv endpoint:")
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/jobs/{job_id}", response_model=JobResponse)
@@ -90,4 +93,4 @@ async def search_jobs(
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8001)
