@@ -99,7 +99,6 @@ th multi-stage builds
 1. Clone the repository
 
 2. Set up environment variables in a `.env` file at the project root:
-   Make sure you have a `.env` file with the following configuration:
 ```env
 # Database Configuration
 DATABASE_URL=postgresql+psycopg2://username:password@host:5432/dbname
@@ -117,11 +116,6 @@ PORT=8000
 ```bash
 pip install -r Job_matching_api-main/requirements.txt
 ```
-4. Run the database migrations:
-```bash
-#No migrations needed
-```
-
 
 4. Start the FastAPI server:
 ```bash
@@ -133,10 +127,6 @@ uvicorn Job_matching_api-main.app:app --host 0.0.0.0 --port 8001 --reload
 ```
 
 5. Access the API documentation at: [http://localhost:8001/docs](http://localhost:8001/docs)
-6. Run the app
-```bash
-python Job_matching_api-main/app.py
-```
 
 ### Docker Setup
 

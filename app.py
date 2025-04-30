@@ -43,6 +43,7 @@ async def match_cv(
     cv_file: UploadFile = File(...),
     interests: Optional[str] = None,
     soft_skills: Optional[str] = None,
+    limit: int = 50, # Add limit parameter with default 50
     db: Session = Depends(get_db)
 ):
     """Match CV with jobs in the database"""
@@ -55,11 +56,15 @@ async def match_cv(
             cv_content=cv_content,
             interests=interests,
             soft_skills=soft_skills,
-            db=db
+            db=db,
+            limit=limit # Pass limit to the service function
         )
         
         return matches
     except Exception as e:
+        import traceback
+        print("Error in /api/match-cv endpoint:")
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/api/jobs/{job_id}", response_model=JobResponse)
@@ -88,5 +93,4 @@ async def search_jobs(
 
 if __name__ == "__main__":
     import uvicorn
-    port = int(os.environ.get("PORT", 80))
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    uvicorn.run(app, host="0.0.0.0", port=8001)
